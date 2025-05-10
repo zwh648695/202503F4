@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.course.mapper.ProductMapper">
+
+	<select id="findById" resultType="com.course.dto.ProductDto">
+		SELECT 
+		P.CODE,
+		P.NAME,
+		R.LIST_PRICE,
+		R.SALES_PRICE 
+		FROM PRODUCT P 
+		LEFT JOIN PRODUCT_PRICE R ON R.PRODUCT_ID = P.ID
+		<!-- WHERE P.ID = #{id} -->
+		<where>
+	        <if test="id != null ">
+	            AND P.ID = #{id}
+	        </if>
+		</where>
+	</select>
+	
+	<select id="findByCondition" resultType="com.course.dto.ProductDto" parameterType="com.course.vo.ProductQueryParam">
+		SELECT 
+		P.CODE,
+		P.NAME,
+		R.LIST_PRICE,
+		R.SALES_PRICE 
+		FROM PRODUCT P 
+		LEFT JOIN PRODUCT_PRICE R ON R.PRODUCT_ID = P.ID
+		<where>
+			<if test="productName != null and productName != '' ">
+				AND P.NAME LIKE #{productName}
+			</if>
+			
+			<if test="minPrice != null">
+				AND R.SALES_PRICE &gt;= #{minPrice}
+			</if>
+			
+			<if test="maxPrice != null">
+				AND R.SALES_PRICE &lt;= #{maxPrice}
+			</if>
+		</where>
+	</select>
+	
+	<select id="findByCategories" resultType="com.course.dto.ProductDto">
+		SELECT 
+		P.CODE,
+		P.NAME,
+		R.LIST_PRICE,
+		R.SALES_PRICE,
+		C.NAME
+		FROM PRODUCT P 
+		LEFT JOIN PRODUCT_PRICE R ON R.PRODUCT_ID = P.ID
+		LEFT JOIN PRODUCT_CATEGORY PC ON PC.PRODUCT_ID = P.ID
+		LEFT JOIN CATEGORY C ON C.ID = PC.CATEGORY_ID
+		<where>
+			<if test="categories != null and categories.size() > 0">
+				 C.NAME IN 
+		        <foreach collection="categories" item="category" open="(" separator="," close=")" >
+		            #{category}
+		        </foreach>
+	        </if>
+		</where>
+	</select>
+	
+	<update id="updatePrice" parameterType="com.course.vo.ProductVo">
+		UPDATE PRODUCT_PRICE
+	    <set>
+	        <if test="listPrice != null ">
+	        	LIST_PRICE = #{listPrice},
+	        </if>
+	        
+	        <if test="salesPrice != null ">
+	        	SALES_PRICE = #{salesPrice}
+	        </if>
+	    </set>
+	     WHERE ID = #{id}
+	</update>
+
+</mapper>
